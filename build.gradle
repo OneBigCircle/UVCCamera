@@ -22,7 +22,7 @@ task clean(type: Delete) {
 ext {
 	supportLibVersion = '25.1.0'  // variable that can be referenced to keep support libs consistent
 	commonLibVersion = '1.5.20'
-	versionBuildTool = "27.0.0"
+	versionBuildTool = "27.0.3"
 	versionCompiler = 27
 	versionTarget = 27
 	versionSdk = 27
