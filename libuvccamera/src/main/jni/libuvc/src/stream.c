@@ -1477,7 +1477,7 @@ uvc_error_t uvc_stream_start_bandwidth(uvc_stream_handle_t *strmh,
 	strmh->frame_format = uvc_frame_format_for_guid(format_desc->guidFormat);
 	if (UNLIKELY(strmh->frame_format == UVC_FRAME_FORMAT_UNKNOWN)) {
 		ret = UVC_ERROR_NOT_SUPPORTED;
-		LOGE("unlnown frame format");
+		LOGE("unknown frame format");
 		goto fail;
 	}
 	const uint32_t dwMaxVideoFrameSize = ctrl->dwMaxVideoFrameSize <= frame_desc->dwMaxVideoFrameBufferSize

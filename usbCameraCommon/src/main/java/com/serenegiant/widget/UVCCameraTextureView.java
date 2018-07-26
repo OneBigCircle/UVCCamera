@@ -581,10 +581,14 @@ public class UVCCameraTextureView extends TextureView	// API >= 14
 				if (DEBUG) Log.v(TAG, "RenderThread#init:");
 				// create EGLContext for this thread
 	            mEgl = EGLBase.createFrom(null, false, false);
-	    		mEglSurface = mEgl.createFromSurface(mSurface);
-	    		mEglSurface.makeCurrent();
-	    		// create drawing object
-	    		mDrawer = new GLDrawer2D(true);
+	            try {
+					mEglSurface = mEgl.createFromSurface(mSurface);
+					mEglSurface.makeCurrent();
+					// create drawing object
+					mDrawer = new GLDrawer2D(true);
+				} catch (RuntimeException e) {
+	            	release();
+				}
 			}
 
 	    	private final void release() {
