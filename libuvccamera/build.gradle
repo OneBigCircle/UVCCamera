@@ -24,6 +24,11 @@ apply plugin: 'com.android.library'
 
 import org.apache.tools.ant.taskdefs.condition.Os
 
+repositories {
+        maven { url 'http://raw.github.com/drjasonharrison-vp-eio/libcommon/master/repository/' }
+        jcenter()
+    }
+
 android {
 	compileSdkVersion versionCompiler
 	buildToolsVersion versionBuildTool
@@ -86,7 +91,8 @@ clean.dependsOn 'ndkClean'
 dependencies {
     compile fileTree(dir: new File(buildDir, 'libs'), include: '*.jar')
 	compile "com.android.support:support-annotations:${supportLibVersion}"
-	compile("com.serenegiant:common:${commonLibVersion}") {
+//	compile("com.serenegiant:common:${commonLibVersion}") {
+	compile("com.serenegiant:common") {
 		exclude module: 'support-v4'
 	}
 }
