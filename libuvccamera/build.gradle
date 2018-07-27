@@ -24,11 +24,6 @@ apply plugin: 'com.android.library'
 
 import org.apache.tools.ant.taskdefs.condition.Os
 
-repositories {
-        maven { url 'http://raw.github.com/drjasonharrison-vp-eio/libcommon/master/repository/' }
-        jcenter()
-    }
-
 android {
 	compileSdkVersion versionCompiler
 	buildToolsVersion versionBuildTool
@@ -44,10 +39,20 @@ android {
     }
 
     buildTypes {
+	    debug {}
+
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt'
         }
+
+		// Tells the Android plugin to use a library's 'debug' build type
+	    // when a '_debugPublishCopy' build type is not available. You can include
+	    // additional build types, and the plugin matches '_debugPublishCopy' to the
+	    // first build type it finds from the one's you specify. That is,
+	    // if 'mylibrary' doesn't include a 'debug' build type either, the
+	    // plugin matches '_debugPublishCopy' with the producer's 'release' build type.
+	    //buildTypeMatching 'staging', 'debug', 'release'
     }
 	sourceSets {
 		main {
@@ -90,9 +95,6 @@ clean.dependsOn 'ndkClean'
 
 dependencies {
     compile fileTree(dir: new File(buildDir, 'libs'), include: '*.jar')
-	compile "com.android.support:support-annotations:${supportLibVersion}"
-//	compile("com.serenegiant:common:${commonLibVersion}") {
-	compile("com.serenegiant:common") {
-		exclude module: 'support-v4'
-	}
+	compile "com.android.support:support-v4:${supportLibVersion}"
+	compile project(':libcommon:common') 
 }

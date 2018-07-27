@@ -21,14 +21,19 @@
  *  may have a different license, see the respective files.
  */
 
+include ':libcommon'
+project(':libcommon').projectDir = new File(rootProject.projectDir, 'submodules/libcommon') 
+include ':libcommon:common'
+project(':libcommon:common').projectDir = new File(rootProject.projectDir, 'submodules/libcommon/common') 
+
 include ':libuvccamera'
 include ':usbCameraCommon'
-include ':usbCameraTest0'
-include ':usbCameraTest1'
-include ':usbCameraTest2'
+// include ':usbCameraTest0'
+// include ':usbCameraTest1'
+// include ':usbCameraTest2'
 include ':usbCameraTest3'
-include ':usbCameraTest4'
-include ':usbCameraTest5'
-include ':usbCameraTest6'
-include ':usbCameraTest7'
-include ':usbCameraTest8'
+// include ':usbCameraTest4'
+// include ':usbCameraTest5'
+// include ':usbCameraTest6'
+// include ':usbCameraTest7'
+// include ':usbCameraTest8'
