@@ -3,7 +3,10 @@ ActivityManager:
 ActivityThread:
 ActivityTrigger:
 Adreno  :
+AlertReceiver:
 AlertService:
+AlarmManager:
+AlarmManagerService:
 AndroidRuntime:
 ANDR-PERF-OPTSHANDLER:
 ANDR-PERF-RESOURCEQS:
@@ -21,6 +24,8 @@ BatteryStatsService:
 BluetoothManagerService:
 BootReceiver:
 BroadcastQueue:
+CalendarProvider2:
+CardEmulationManager:
 CarrierText:
 CarrierConfigLoader:
 CarrierSvcBindHelper:
@@ -32,6 +37,7 @@ ConditionProviders.SCP:
 ConditionProviders:
 ConnectivityManager:
 ConnectivityService:
+ContentResolver:
 ContextImpl:
 CountryDetector:
 CryptdConnector:
@@ -42,6 +48,7 @@ DhcpClient:
 DisplayManagerService:
 DisplayPowerController:
 DockObserver:
+DPMJ    :
 DpmTcmClient:
 DreamController:
 DreamManagerService:
@@ -156,6 +163,7 @@ SystemServer:
 SystemServiceManager:
 Telecom
 TetherStatsReporting:
+tftp_server:
 update_verifier:
 UsageStatsDatabase:
 UsageStatsService:
