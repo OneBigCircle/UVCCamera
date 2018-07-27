@@ -1,0 +1,3 @@
+[submodule "submodules/libcommon"]
+	path = submodules/libcommon
+	url = https://github.com/drjasonharrison-vp-eio/libcommon.git
