@@ -425,6 +425,12 @@ public class UVCCameraTextureView extends TextureView	// API >= 14
 	            		mPreviewSurface.release();
 	            		mPreviewSurface = null;
 	            	}
+	            	// JH-eio>
+					if (mEglSurface == null) {
+						Log.e(TAG, "updatePreviewSurface:mEglSurface is null");
+	            		return;
+					}
+					// JH-eio<
 					mEglSurface.makeCurrent();
 		            if (mTexId >= 0) {
 						mDrawer.deleteTex(mTexId);
