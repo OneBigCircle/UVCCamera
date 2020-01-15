@@ -107,7 +107,7 @@ enum uvc_frame_format {
 	UVC_FRAME_FORMAT_BY8,
 
 	UVC_FRAME_FORMAT_I420, // jimk
-
+	UVC_FRAME_FORMAT_16PP, // jasonh
 	/** Number of formats understood */
 	UVC_FRAME_FORMAT_COUNT,
 };

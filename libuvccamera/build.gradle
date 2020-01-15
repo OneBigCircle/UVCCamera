@@ -34,15 +34,25 @@ android {
 	}
 
     defaultConfig {
-        minSdkVersion 18
+        minSdkVersion versionSdk
 		targetSdkVersion versionTarget
     }
 
     buildTypes {
+	    debug {}
+
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt'
         }
+
+		// Tells the Android plugin to use a library's 'debug' build type
+	    // when a '_debugPublishCopy' build type is not available. You can include
+	    // additional build types, and the plugin matches '_debugPublishCopy' to the
+	    // first build type it finds from the one's you specify. That is,
+	    // if 'mylibrary' doesn't include a 'debug' build type either, the
+	    // plugin matches '_debugPublishCopy' with the producer's 'release' build type.
+	    //buildTypeMatching 'staging', 'debug', 'release'
     }
 	sourceSets {
 		main {
@@ -88,4 +98,5 @@ dependencies {
 
 	implementation "androidx.appcompat:appcompat:${androidXVersion}"
 	implementation "com.serenegiant:common:${commonLibVersion}"
+	implementation project(':libcommon:common') 
 }

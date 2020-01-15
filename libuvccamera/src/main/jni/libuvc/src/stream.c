@@ -91,8 +91,13 @@ struct format_table_entry *_get_format_entry(enum uvc_frame_format format) {
       _fmt, 0, __VA_ARGS__, 0, NULL }; \
     return &_fmt##_entry; }
 
+	UVC_DEBUG("_get_format_entry for %d vs num formats %d", format, UVC_FRAME_FORMAT_COUNT);
+
 	switch (format) {
 	/* Define new formats here */
+	FMT(UVC_FRAME_FORMAT_16PP,  // jasonh
+		{0x59, 0x55, 0x59, 0x32, 0x00, 0x00, 0x10, 0x00, 0x80, 0x00, 0x00, 0xaa, 0x00, 0x38, 0x9b, 0xff})
+
 	FMT(UVC_FRAME_FORMAT_I420,  // jimk
 		{'I', '4', '2', '0', 0x00, 0x00, 0x10, 0x00, 0x80, 0x00, 0x00, 0xaa, 0x00, 0x38, 0x9b, 0x71})
 
@@ -135,7 +140,7 @@ static uint8_t _uvc_frame_format_matches_guid(enum uvc_frame_format fmt,
 		}
 
 	for(int i = 0; i < 16; i++)
-	    UVC_DEBUG(" guid %d %d", guid[i], format->guid[i]);
+	    UVC_DEBUG(" guid 0x%02x vs 0x%02x", guid[i], format->guid[i]);
 
 	if (!format->abstract_fmt && !memcmp(guid, format->guid, 16))
 		return 1;
@@ -162,6 +167,7 @@ static enum uvc_frame_format uvc_frame_format_for_guid(uint8_t guid[16]) {
 			return format->format;
 	}
 
+	UVC_DEBUG("uvc_frame_format_for_guid returning UVC_FRAME_FORMAT_UNKNOWN");
 	return UVC_FRAME_FORMAT_UNKNOWN;
 }
 
@@ -553,14 +559,48 @@ uvc_error_t uvc_get_stream_ctrl_format_size_fps(uvc_device_handle_t *devh,
 	uvc_streaming_interface_t *stream_if;
 	uvc_error_t result;
 
+
 	memset(ctrl, 0, sizeof(*ctrl));	// XXX add
 	/* find a matching frame descriptor and interval */
 	uvc_format_desc_t *format;
 	DL_FOREACH(devh->info->stream_ifs, stream_if)
 	{
-	    UVC_DEBUG("*** stream_if" );
+	    UVC_DEBUG("*** stream_ifs" );
 		DL_FOREACH(stream_if->format_descs, format)
 		{
+    		// JH>
+    		char * buffer = NULL;
+			long length;
+			// Android appropriate temp directory
+    		const char *tmpFilename = "/data/local/tmp/uvc-stream.txt";
+		    FILE *f = NULL;
+		    f = fopen(tmpFilename, "w");
+
+		    if (!f) {
+		    	UVC_DEBUG("Unable to open %s", tmpFilename);
+		    } else {
+    			uvc_print_format_desc(format, f);
+    			fclose(f);
+	    		f = fopen(tmpFilename, "r");
+				if (!f) {
+					UVC_DEBUG("Unable to reopen %s", tmpFilename);
+				} else {
+				  	fseek (f, 0, SEEK_END);
+				  	length = ftell (f);
+			  		fseek (f, 0, SEEK_SET);
+			  		buffer = calloc (1, length);
+			  		if (!buffer) {
+			  			UVC_DEBUG("unable to allocate memory buffer");
+			  		} else {
+			    		fread (buffer, 1, length, f);
+						UVC_DEBUG("format: %s", buffer);
+						free(buffer);
+			  		}
+			  		fclose (f);
+			  		remove(tmpFilename);
+				}
+			}
+    		// <JH
     	    UVC_DEBUG("*** format" );
 			if (!_uvc_frame_format_matches_guid(cf, format->guidFormat)) {
 	UVC_DEBUG("*** ! _uvc_frame_format_matches_guid  " );
@@ -1437,7 +1477,7 @@ uvc_error_t uvc_stream_start_bandwidth(uvc_stream_handle_t *strmh,
 	strmh->frame_format = uvc_frame_format_for_guid(format_desc->guidFormat);
 	if (UNLIKELY(strmh->frame_format == UVC_FRAME_FORMAT_UNKNOWN)) {
 		ret = UVC_ERROR_NOT_SUPPORTED;
-		LOGE("unlnown frame format");
+		LOGE("unknown frame format");
 		goto fail;
 	}
 	const uint32_t dwMaxVideoFrameSize = ctrl->dwMaxVideoFrameSize <= frame_desc->dwMaxVideoFrameBufferSize

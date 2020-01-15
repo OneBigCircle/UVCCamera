@@ -405,6 +405,12 @@ public class UVCCameraTextureView extends AspectRatioTextureView    // API >= 14
 	            		mPreviewSurface.release();
 	            		mPreviewSurface = null;
 	            	}
+	            	// JH-eio>
+					if (mEglSurface == null) {
+						Log.e(TAG, "updatePreviewSurface:mEglSurface is null");
+	            		return;
+					}
+					// JH-eio<
 					mEglSurface.makeCurrent();
 		            if (mTexId >= 0) {
 						mDrawer.deleteTex(mTexId);
@@ -561,10 +567,14 @@ public class UVCCameraTextureView extends AspectRatioTextureView    // API >= 14
 				if (DEBUG) Log.v(TAG, "RenderThread#init:");
 				// create EGLContext for this thread
 	            mEgl = EGLBase.createFrom(null, false, false);
-	    		mEglSurface = mEgl.createFromSurface(mSurface);
-	    		mEglSurface.makeCurrent();
-	    		// create drawing object
-	    		mDrawer = new GLDrawer2D(true);
+	            try {
+					mEglSurface = mEgl.createFromSurface(mSurface);
+					mEglSurface.makeCurrent();
+					// create drawing object
+					mDrawer = new GLDrawer2D(true);
+				} catch (RuntimeException e) {
+	            	release();
+				}
 			}
 
 	    	private final void release() {

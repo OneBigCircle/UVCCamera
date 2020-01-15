@@ -1,10 +1,13 @@
 // Top-level build file where you can add configuration options common to all sub-projects/modules.
 buildscript {
     repositories {
-//		google()
-		maven { url 'https://maven.google.com' }
+        mavenCentral()
+        maven {
+            url "https://maven.google.com"
+        }
         jcenter()
     }
+
     dependencies {
         classpath 'com.android.tools.build:gradle:3.5.2'
     }
@@ -12,10 +15,17 @@ buildscript {
 
 allprojects {
     repositories {
-//    	google()
-		maven { url 'https://maven.google.com' }
-		jcenter()
-		maven { url 'http://raw.github.com/saki4510t/libcommon/master/repository/' }
+        mavenCentral()
+        maven {
+            url "https://maven.google.com"
+        }
+        jcenter()
+    }
+
+    gradle.projectsEvaluated {
+        tasks.withType(JavaCompile) {
+            options.compilerArgs << "-Xlint:unchecked" << "-Xlint:deprecation"
+        }
     }
 }
 
@@ -24,12 +34,14 @@ task clean(type: Delete) {
 }
 
 ext {
+<<<<<<< HEAD
 	androidXVersion = '1.1.0'
 	commonLibVersion= '4.1.1'
 	versionBuildTool = '29.0.2'
 	versionCompiler = 29
 	versionTarget = 28
 	versionNameString = '1.0.0'
+	versionSdk = 25 // minSdkVersion
 	javaSourceCompatibility = JavaVersion.VERSION_1_8
 	javaTargetCompatibility = JavaVersion.VERSION_1_8
 }
