@@ -29,7 +29,7 @@ import android.graphics.SurfaceTexture;
 import android.hardware.usb.UsbDevice;
 import android.os.Bundle;
 import android.os.Environment;
-import android.util.Log;
+import uk.co.onebigcircle.aivr_poc.util.Log;
 import android.view.Surface;
 import android.view.TextureView;
 import android.view.View;

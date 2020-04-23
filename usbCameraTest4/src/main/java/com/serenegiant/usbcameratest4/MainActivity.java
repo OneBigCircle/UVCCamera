@@ -26,7 +26,7 @@ package com.serenegiant.usbcameratest4;
 import android.app.Fragment;
 import android.content.pm.ActivityInfo;
 import android.os.Bundle;
-import android.util.Log;
+import uk.co.onebigcircle.aivr_poc.util.Log;
 import android.view.Window;
 
 import com.serenegiant.common.BaseActivity;

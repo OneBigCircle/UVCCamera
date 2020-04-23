@@ -31,7 +31,7 @@ import android.content.Intent;
 import android.hardware.usb.UsbDevice;
 import android.os.Bundle;
 import android.os.Environment;
-import android.util.Log;
+import uk.co.onebigcircle.aivr_poc.util.Log;
 import android.view.LayoutInflater;
 import android.view.SurfaceView;
 import android.view.View;

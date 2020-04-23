@@ -29,7 +29,7 @@ import android.media.MediaCodec;
 import android.media.MediaCodecInfo;
 import android.media.MediaFormat;
 import android.media.MediaMuxer;
-import android.util.Log;
+import uk.co.onebigcircle.aivr_poc.util.Log;
 import android.view.Surface;
 
 public class SurfaceEncoder extends Encoder {

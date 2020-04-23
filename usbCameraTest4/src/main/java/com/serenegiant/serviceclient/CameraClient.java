@@ -35,7 +35,7 @@ import android.os.IBinder;
 import android.os.Looper;
 import android.os.Message;
 import android.os.RemoteException;
-import android.util.Log;
+import uk.co.onebigcircle.aivr_poc.util.Log;
 import android.view.Surface;
 
 import com.serenegiant.service.IUVCService;

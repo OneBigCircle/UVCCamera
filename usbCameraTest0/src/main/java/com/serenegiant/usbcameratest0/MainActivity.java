@@ -25,7 +25,7 @@ package com.serenegiant.usbcameratest0;
 
 import android.hardware.usb.UsbDevice;
 import android.os.Bundle;
-import android.util.Log;
+import uk.co.onebigcircle.aivr_poc.util.Log;
 import android.view.Surface;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;

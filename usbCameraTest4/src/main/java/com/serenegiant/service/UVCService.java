@@ -30,7 +30,7 @@ import android.content.Intent;
 import android.hardware.usb.UsbDevice;
 import android.os.IBinder;
 import android.os.RemoteException;
-import android.util.Log;
+import uk.co.onebigcircle.aivr_poc.util.Log;
 import android.util.SparseArray;
 import android.view.Surface;
 

@@ -31,7 +31,7 @@ import android.media.MediaCodecInfo;
 import android.media.MediaCodecList;
 import android.media.MediaFormat;
 import android.media.MediaMuxer;
-import android.util.Log;
+import uk.co.onebigcircle.aivr_poc.util.Log;
 
 public abstract class Encoder implements Runnable {
 	private static final boolean DEBUG = true;	// TODO set false on release
