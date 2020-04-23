@@ -2719,12 +2719,23 @@ static int handle_iso_completion(struct libusb_device_handle *handle,	// XXX add
 		struct usbfs_urb *urb) {
 	struct libusb_transfer *transfer = USBI_TRANSFER_TO_LIBUSB_TRANSFER(itransfer);
 	struct android_transfer_priv *tpriv = usbi_transfer_get_os_priv(itransfer);
-	int num_urbs = tpriv->num_urbs;
+	int num_urbs;
 	int urb_idx = 0;
 	int i;
 	enum libusb_transfer_status status = LIBUSB_TRANSFER_COMPLETED;
 
 	usbi_mutex_lock(&itransfer->lock);
+	if (UNLIKELY(tpriv == NULL)) {
+		usbi_err(TRANSFER_CTX(transfer), "could not locate urb!");	// crash 2014/09/29 SIGSEGV/SEGV_MAPERR
+		usbi_mutex_unlock(&itransfer->lock);
+		return LIBUSB_ERROR_NOT_FOUND;
+	}
+	if (UNLIKELY(tpriv->iso_urbs == NULL)) {
+		usbi_err(TRANSFER_CTX(transfer), "could not locate urb!");	// crash 2014/09/29 SIGSEGV/SEGV_MAPERR
+		usbi_mutex_unlock(&itransfer->lock);
+		return LIBUSB_ERROR_NOT_FOUND;
+	}
+	num_urbs = tpriv->num_urbs;
 	for (i = 0; i < num_urbs; i++) {
 		if (urb == tpriv->iso_urbs[i]) {
 			urb_idx = i + 1;
