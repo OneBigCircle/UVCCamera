@@ -250,6 +250,17 @@ static jint nativeStopPreview(JNIEnv *env, jobject thiz,
 	RETURN(result, jint);
 }
 
+static jboolean nativeIsPreviewRunning(JNIEnv *env, jobject thiz,
+	ID_TYPE id_camera) {
+
+	ENTER();
+	UVCCamera *camera = reinterpret_cast<UVCCamera *>(id_camera);
+	if (LIKELY(camera)) {
+		return camera->isPreviewRunning();
+	}
+	RETURN(JNI_ERR, jboolean);
+}
+
 static jint nativeSetPreviewDisplay(JNIEnv *env, jobject thiz,
 	ID_TYPE id_camera, jobject jSurface) {
 
@@ -2026,6 +2037,7 @@ static JNINativeMethod methods[] = {
 	{ "nativeSetPreviewSize",			"(JIIIIIF)I", (void *) nativeSetPreviewSize },
 	{ "nativeStartPreview",				"(J)I", (void *) nativeStartPreview },
 	{ "nativeStopPreview",				"(J)I", (void *) nativeStopPreview },
+	{ "nativeIsPreviewRunning",			"(J)Z", (void *) nativeIsPreviewRunning },
 	{ "nativeSetPreviewDisplay",		"(JLandroid/view/Surface;)I", (void *) nativeSetPreviewDisplay },
 	{ "nativeSetFrameCallback",			"(JLcom/serenegiant/usb/IFrameCallback;I)I", (void *) nativeSetFrameCallback },
 

@@ -166,7 +166,7 @@ void UVCPreview::clear_pool() {
 	EXIT();
 }
 
-inline const bool UVCPreview::isRunning() const {return mIsRunning; }
+const bool UVCPreview::isRunning() const {return mIsRunning; }
 
 int UVCPreview::setPreviewSize(int width, int height, int min_fps, int max_fps, int mode, float bandwidth) {
 	ENTER();
@@ -470,6 +470,8 @@ void *UVCPreview::preview_thread_func(void *vptr_args) {
 		if (LIKELY(!result)) {
 			preview->do_preview(&ctrl);
 		}
+	} else {
+	    preview->mIsRunning = false;
 	}
 	PRE_EXIT();
 	pthread_exit(NULL);
@@ -563,6 +565,7 @@ void UVCPreview::do_preview(uvc_stream_ctrl_t *ctrl) {
 #endif
 	} else {
 		uvc_perror(result, "failed start_streaming");
+		mIsRunning = false;
 	}
 
 	EXIT();

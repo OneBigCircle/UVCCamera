@@ -430,7 +430,19 @@ public class UVCCamera {
     	}
     }
 
-    /**
+	/**
+	 * stop preview
+	 */
+	public synchronized boolean isPreviewRunning() {
+		if (mCtrlBlock != null) {
+			return nativeIsPreviewRunning(mNativePtr);
+		} else {
+			return false;
+		}
+	}
+
+
+	/**
      * destroy UVCCamera object
      */
     public synchronized void destroy() {
@@ -1042,6 +1054,7 @@ public class UVCCamera {
     private static final native String nativeGetSupportedSize(final long id_camera);
     private static final native int nativeStartPreview(final long id_camera);
     private static final native int nativeStopPreview(final long id_camera);
+    private static final native boolean nativeIsPreviewRunning(final long id_camera);
     private static final native int nativeSetPreviewDisplay(final long id_camera, final Surface surface);
     private static final native int nativeSetFrameCallback(final long mNativePtr, final IFrameCallback callback, final int pixelFormat);
 

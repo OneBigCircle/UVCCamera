@@ -114,7 +114,7 @@ public:
 	UVCPreview(uvc_device_handle_t *devh);
 	~UVCPreview();
 
-	inline const bool isRunning() const;
+	const bool isRunning() const;
 	int setPreviewSize(int width, int height, int min_fps, int max_fps, int mode, float bandwidth = 1.0f);
 	int setPreviewDisplay(ANativeWindow *preview_window);
 	int setFrameCallback(JNIEnv *env, jobject frame_callback_obj, int pixel_format);

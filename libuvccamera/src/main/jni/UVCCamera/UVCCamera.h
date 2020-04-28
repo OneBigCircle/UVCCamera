@@ -193,6 +193,7 @@ public:
 	int setFrameCallback(JNIEnv *env, jobject frame_callback_obj, int pixel_format);
 	int startPreview();
 	int stopPreview();
+	const bool isPreviewRunning() const;
 	int setCaptureDisplay(ANativeWindow *capture_window);
 
 	int getCtrlSupports(uint64_t *supports);

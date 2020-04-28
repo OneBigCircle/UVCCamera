@@ -291,6 +291,15 @@ int UVCCamera::stopPreview() {
 	RETURN(0, int);
 }
 
+const bool UVCCamera::isPreviewRunning() const {
+	ENTER();
+	bool r = false;
+	if (LIKELY(mPreview)) {
+		r = mPreview->isRunning();
+	}
+	RETURN(r, bool);
+}
+
 int UVCCamera::setCaptureDisplay(ANativeWindow *capture_window) {
 	ENTER();
 	int result = EXIT_FAILURE;
