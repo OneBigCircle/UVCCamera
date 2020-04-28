@@ -1149,6 +1149,9 @@ enum libusb_error {
 	/** Operation not supported or unimplemented on this platform */
 	LIBUSB_ERROR_NOT_SUPPORTED = -12,
 
+	/** Operation not supported or unimplemented on this platform */
+	LIBUSB_ERROR_INSUFFICIENT_BANDWIDTH = -13,
+
 	/* NB: Remember to update LIBUSB_ERROR_COUNT below as well as the
 	   message strings in strerror.c when adding new error codes here. */
 
@@ -1157,7 +1160,7 @@ enum libusb_error {
 };
 
 /* Total number of error codes in enum libusb_error */
-#define LIBUSB_ERROR_COUNT 14
+#define LIBUSB_ERROR_COUNT 15
 
 /** \ingroup asyncio
  * Transfer status codes */

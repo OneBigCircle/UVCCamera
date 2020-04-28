@@ -39,14 +39,18 @@ typedef enum uvc_error {
 	UVC_ERROR_NO_MEM = -11,
 	/** Operation not supported */
 	UVC_ERROR_NOT_SUPPORTED = -12,
+	/** Insufficient bandwidth */
+	UVC_ERROR_INSUFFICIENT_BANDWIDTH = -18,
 	/** Device is not UVC-compliant */
 	UVC_ERROR_INVALID_DEVICE = -50,
 	/** Mode not supported */
 	UVC_ERROR_INVALID_MODE = -51,
 	/** Resource has a callback (can't use polling and async) */
 	UVC_ERROR_CALLBACK_EXISTS = -52,
+	/** Unable to decode mjpeg frame */
+	UVC_ERROR_MJPEG_DECODE_FAILED = -53,
 	/** Undefined error */
-	UVC_ERROR_OTHER = -99
+	UVC_ERROR_OTHER = -98
 } uvc_error_t;
 
 /**

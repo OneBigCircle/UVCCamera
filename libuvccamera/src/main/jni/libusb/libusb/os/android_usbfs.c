@@ -1796,7 +1796,10 @@ static int op_set_interface(struct libusb_device_handle *handle, int iface, int 
 			RETURN(LIBUSB_ERROR_NOT_FOUND, int);
 		} else if (errno == ENODEV) {
 			RETURN(LIBUSB_ERROR_NO_DEVICE, int);
+		} else if (errno == ENOSPC) {
+		    RETURN(LIBUSB_ERROR_INSUFFICIENT_BANDWIDTH, int);
 		}
+		LOGE("setintf failed error %d errno %d", r, errno);
 		usbi_err(HANDLE_CTX(handle),
 			"setintf failed error %d errno %d", r, errno);
 		RETURN(LIBUSB_ERROR_OTHER, int);

@@ -224,11 +224,11 @@ uvc_error_t uvc_mjpeg2rgb(uvc_frame_t *in, uvc_frame_t *out) {
 	}
 	jpeg_finish_decompress(&dinfo);
 	jpeg_destroy_decompress(&dinfo);
-	return lines_read == out->height ? UVC_SUCCESS : UVC_ERROR_OTHER;	// XXX
+	return lines_read == out->height ? UVC_SUCCESS : UVC_ERROR_MJPEG_DECODE_FAILED;	// XXX
 
 fail:
 	jpeg_destroy_decompress(&dinfo);
-	return UVC_ERROR_OTHER+1;
+	return UVC_ERROR_MJPEG_DECODE_FAILED;
 }
 
 /** @brief Convert an MJPEG frame to BGR
@@ -298,11 +298,11 @@ uvc_error_t uvc_mjpeg2bgr(uvc_frame_t *in, uvc_frame_t *out) {
 	}
 	jpeg_finish_decompress(&dinfo);
 	jpeg_destroy_decompress(&dinfo);
-	return lines_read == out->height ? UVC_SUCCESS : UVC_ERROR_OTHER;	// XXX
+	return lines_read == out->height ? UVC_SUCCESS : UVC_ERROR_MJPEG_DECODE_FAILED;	// XXX
 
 fail:
 	jpeg_destroy_decompress(&dinfo);
-	return UVC_ERROR_OTHER+1;
+	return UVC_ERROR_MJPEG_DECODE_FAILED;
 }
 
 /** @brief Convert an MJPEG frame to RGB565
@@ -372,11 +372,11 @@ uvc_error_t uvc_mjpeg2rgb565(uvc_frame_t *in, uvc_frame_t *out) {
 	}
 	jpeg_finish_decompress(&dinfo);
 	jpeg_destroy_decompress(&dinfo);
-	return lines_read == out->height ? UVC_SUCCESS : UVC_ERROR_OTHER;	// XXX
+	return lines_read == out->height ? UVC_SUCCESS : UVC_ERROR_MJPEG_DECODE_FAILED;	// XXX
 
 fail:
 	jpeg_destroy_decompress(&dinfo);
-	return UVC_ERROR_OTHER+1;
+	return UVC_ERROR_MJPEG_DECODE_FAILED;
 }
 
 /** @brief Convert an MJPEG frame to RGBX
@@ -445,11 +445,11 @@ uvc_error_t uvc_mjpeg2rgbx(uvc_frame_t *in, uvc_frame_t *out) {
 	}
 	jpeg_finish_decompress(&dinfo);
 	jpeg_destroy_decompress(&dinfo);
-	return lines_read == out->height ? UVC_SUCCESS : UVC_ERROR_OTHER;	// XXX
+	return lines_read == out->height ? UVC_SUCCESS : UVC_ERROR_MJPEG_DECODE_FAILED;	// XXX
 
 fail:
 	jpeg_destroy_decompress(&dinfo);
-	return UVC_ERROR_OTHER+1;
+	return UVC_ERROR_MJPEG_DECODE_FAILED;
 }
 
 static inline unsigned char sat(int i) {
@@ -543,10 +543,10 @@ uvc_error_t uvc_mjpeg2yuyv(uvc_frame_t *in, uvc_frame_t *out) {
 
 	jpeg_finish_decompress(&dinfo);
 	jpeg_destroy_decompress(&dinfo);
-	return lines_read == out->height ? UVC_SUCCESS : UVC_ERROR_OTHER;
+	return lines_read == out->height ? UVC_SUCCESS : UVC_ERROR_MJPEG_DECODE_FAILED;
 
 fail:
 	jpeg_destroy_decompress(&dinfo);
-	return lines_read == out->height ? UVC_SUCCESS : UVC_ERROR_OTHER+1;
+	return lines_read == out->height ? UVC_SUCCESS : UVC_ERROR_MJPEG_DECODE_FAILED;
 }
 

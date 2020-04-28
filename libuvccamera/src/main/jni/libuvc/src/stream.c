@@ -1234,8 +1234,13 @@ uvc_error_t uvc_start_streaming_bandwidth(uvc_device_handle_t *devh,
 	if (UNLIKELY(ret != UVC_SUCCESS))
 		return ret;
 
+attempt:
 	ret = uvc_stream_start_bandwidth(strmh, cb, user_ptr, bandwidth_factor, flags);
 	if (UNLIKELY(ret != UVC_SUCCESS)) {
+	    if (LIKELY(ret == UVC_ERROR_INSUFFICIENT_BANDWIDTH && bandwidth_factor > 0.125f)) {
+	        bandwidth_factor *= 0.5f;
+	        goto attempt;
+	    }
 		uvc_stream_close(strmh);
 		return ret;
 	}
@@ -1862,7 +1867,7 @@ uvc_error_t uvc_stream_stop(uvc_stream_handle_t *strmh) {
 void uvc_stream_close(uvc_stream_handle_t *strmh) {
 	UVC_ENTER();
 
-	if (!strmh) { UVC_EXIT_VOID() };
+	if (!strmh) { UVC_EXIT_VOID(); };
 
 	if (strmh->running)
 		uvc_stream_stop(strmh);

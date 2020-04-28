@@ -65,9 +65,11 @@ static const _uvc_error_msg_t uvc_error_msgs[] = {
 	{ UVC_ERROR_INTERRUPTED, "Interrupted" },
 	{ UVC_ERROR_NO_MEM, "Out of memory" },
 	{ UVC_ERROR_NOT_SUPPORTED, "Not supported" },
+	{ UVC_ERROR_INSUFFICIENT_BANDWIDTH, "Insufficient bandwidth" },
 	{ UVC_ERROR_INVALID_DEVICE, "Invalid device" },
 	{ UVC_ERROR_INVALID_MODE, "Invalid mode" },
-	{ UVC_ERROR_CALLBACK_EXISTS, "Callback exists" }
+	{ UVC_ERROR_CALLBACK_EXISTS, "Callback exists" },
+    { UVC_ERROR_MJPEG_DECODE_FAILED, "MJPEG decode error" }
 };
 
 #ifdef __ANDROID__

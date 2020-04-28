@@ -64,6 +64,7 @@ UVCPreview::UVCPreview(uvc_device_handle_t *devh)
 	previewFormat(WINDOW_FORMAT_RGBA_8888),
 	mIsRunning(false),
 	mIsCapturing(false),
+	capture_thread_exists(false),
 	captureQueu(NULL),
 	mFrameCallbackObj(NULL),
 	mFrameCallbackFunc(NULL),
@@ -358,11 +359,13 @@ int UVCPreview::stopPreview() {
 		mIsRunning = false;
 		pthread_cond_signal(&preview_sync);
 		pthread_cond_signal(&capture_sync);
-		if (pthread_join(capture_thread, NULL) != EXIT_SUCCESS) {
-			LOGW("UVCPreview::terminate capture thread: pthread_join failed");
-		}
-		if (pthread_join(preview_thread, NULL) != EXIT_SUCCESS) {
-			LOGW("UVCPreview::terminate preview thread: pthread_join failed");
+        if (pthread_join(preview_thread, NULL) != EXIT_SUCCESS) {
+            LOGW("UVCPreview::terminate preview thread: pthread_join failed");
+        }
+        if (LIKELY(capture_thread_exists == true)) {
+            if (pthread_join(capture_thread, NULL) != EXIT_SUCCESS) {
+                LOGW("UVCPreview::terminate capture thread: pthread_join failed");
+            }
 		}
 		clearDisplay();
 	}
@@ -751,10 +754,10 @@ void UVCPreview::clearCaptureFrame() {
 // static
 void *UVCPreview::capture_thread_func(void *vptr_args) {
 	int result;
-
 	ENTER();
 	UVCPreview *preview = reinterpret_cast<UVCPreview *>(vptr_args);
 	if (LIKELY(preview)) {
+        preview->capture_thread_exists = true;
 		JavaVM *vm = getVM();
 		JNIEnv *env;
 		// attach to JavaVM
@@ -763,6 +766,7 @@ void *UVCPreview::capture_thread_func(void *vptr_args) {
 		// detach from JavaVM
 		vm->DetachCurrentThread();
 		MARK("DetachCurrentThread");
+        preview->capture_thread_exists = false;
 	}
 	PRE_EXIT();
 	pthread_exit(NULL);

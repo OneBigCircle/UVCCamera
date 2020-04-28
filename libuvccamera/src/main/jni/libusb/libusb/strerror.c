@@ -73,6 +73,7 @@ static const char* usbi_localized_errors[ARRAYSIZE(usbi_locale_supported)][LIBUS
 		"System call interrupted (perhaps due to signal)",
 		"Insufficient memory",
 		"Operation not supported or unimplemented on this platform",
+		"Insufficient bandwidth",
 		"Other error",
 	}, { /* Dutch (nl) */
 		"Gelukt",
@@ -88,6 +89,7 @@ static const char* usbi_localized_errors[ARRAYSIZE(usbi_locale_supported)][LIBUS
 		"Onderbroken systeemaanroep",
 		"Onvoldoende geheugen beschikbaar",
 		"Bewerking wordt niet ondersteund",
+		"...",
 		"Andere fout",
 	}, { /* French (fr) */
 		"Succès",
@@ -103,6 +105,7 @@ static const char* usbi_localized_errors[ARRAYSIZE(usbi_locale_supported)][LIBUS
 		"Appel système abandonné (peut-être à cause d’un signal)",
 		"Mémoire insuffisante",
 		"Opération non supportée or non implémentée sur cette plateforme",
+		"...",
 		"Autre erreur",
 	}, { /* Russian (ru) */
 		"Успех",
@@ -118,6 +121,7 @@ static const char* usbi_localized_errors[ARRAYSIZE(usbi_locale_supported)][LIBUS
 		"Системный вызов прерван (возможно, сигналом)",
 		"Память исчерпана",
 		"Операция не поддерживается данной платформой",
+		"...",
 		"Неизвестная ошибка"
 	}
 };
