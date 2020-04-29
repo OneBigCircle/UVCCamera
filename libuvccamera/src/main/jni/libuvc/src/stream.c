@@ -45,7 +45,7 @@
 #define LOCAL_DEBUG 0
 
 #define LOG_TAG "libuvc/stream"
-#if 1	// デバッグ情報を出さない時1
+#if 0	// デバッグ情報を出さない時1
 	#ifndef LOG_NDEBUG
 		#define	LOG_NDEBUG		// LOGV/LOGD/MARKを出力しない時
 		#endif
@@ -1234,13 +1234,8 @@ uvc_error_t uvc_start_streaming_bandwidth(uvc_device_handle_t *devh,
 	if (UNLIKELY(ret != UVC_SUCCESS))
 		return ret;
 
-attempt:
 	ret = uvc_stream_start_bandwidth(strmh, cb, user_ptr, bandwidth_factor, flags);
 	if (UNLIKELY(ret != UVC_SUCCESS)) {
-	    if (LIKELY(ret == UVC_ERROR_INSUFFICIENT_BANDWIDTH && bandwidth_factor > 0.125f)) {
-	        bandwidth_factor *= 0.5f;
-	        goto attempt;
-	    }
 		uvc_stream_close(strmh);
 		return ret;
 	}
@@ -1458,7 +1453,13 @@ uvc_error_t uvc_stream_start_bandwidth(uvc_stream_handle_t *strmh,
 
 		struct libusb_transfer *transfer;
 		int transfer_id;
-		
+
+		#if !defined(__LP64__)
+        		LOGI("dwMaxPayloadTransferSize=%d", strmh->cur_ctrl.dwMaxPayloadTransferSize);
+        #else
+        		LOGI("dwMaxPayloadTransferSize=%ld", strmh->cur_ctrl.dwMaxPayloadTransferSize);
+        #endif
+
 		if ((bandwidth_factor > 0) && (bandwidth_factor < 1.0f)) {
 			config_bytes_per_packet = (size_t)(strmh->cur_ctrl.dwMaxPayloadTransferSize * bandwidth_factor);
 			if (!config_bytes_per_packet) {
@@ -1467,11 +1468,11 @@ uvc_error_t uvc_stream_start_bandwidth(uvc_stream_handle_t *strmh,
 		} else {
 			config_bytes_per_packet = strmh->cur_ctrl.dwMaxPayloadTransferSize;
 		}
-//#if !defined(__LP64__)
-//		LOGI("config_bytes_per_packet=%d", config_bytes_per_packet);
-//#else
-//		LOGI("config_bytes_per_packet=%ld", config_bytes_per_packet);
-//#endif
+#if !defined(__LP64__)
+		LOGI("config_bytes_per_packet=%d", config_bytes_per_packet);
+#else
+		LOGI("config_bytes_per_packet=%ld", config_bytes_per_packet);
+#endif
 		if (UNLIKELY(!config_bytes_per_packet)) {	// XXX added to privent zero divided exception at the following code
 			ret = UVC_ERROR_IO;
 			LOGE("config_bytes_per_packet is zero");
@@ -1482,6 +1483,8 @@ uvc_error_t uvc_stream_start_bandwidth(uvc_stream_handle_t *strmh,
 		 * as big as our format's maximum per-packet usage. Assume that the
 		 * packet sizes are increasing. */
 		const int num_alt = interface->num_altsetting - 1;
+		int selected_alt_idx = num_alt;
+		int selected_bytes_per_packet = strmh->cur_ctrl.dwMaxPayloadTransferSize;
 		for (alt_idx = 0; alt_idx <= num_alt ; alt_idx++) {
 			altsetting = interface->altsetting + alt_idx;
 			endpoint_bytes_per_packet = 0;
@@ -1504,45 +1507,52 @@ uvc_error_t uvc_stream_start_bandwidth(uvc_stream_handle_t *strmh,
 					break;
 				}
 			}
+
 			// XXX config_bytes_per_packet should not be zero otherwise zero divided exception occur
 			if (LIKELY(endpoint_bytes_per_packet)) {
-				if ( (endpoint_bytes_per_packet >= config_bytes_per_packet)
-					|| (alt_idx == num_alt) ) {	// XXX always match to last altsetting for buggy device
-					/* Transfers will be at most one frame long: Divide the maximum frame size
-					 * by the size of the endpoint and round up */
-					packets_per_transfer = (dwMaxVideoFrameSize
-							+ endpoint_bytes_per_packet - 1)
-							/ endpoint_bytes_per_packet;		// XXX cashed by zero divided exception occured
+#if !defined(__LP64__)
+                LOGI("alt_mode %d endpoint_bytes_per_packet=%d", alt_idx, endpoint_bytes_per_packet);
+#else
+                LOGI("alt_mode %d endpoint_bytes_per_packet=%ld", alt_idx, endpoint_bytes_per_packet);
+#endif
 
-					/* But keep a reasonable limit: Otherwise we start dropping data */
-					if (packets_per_transfer > 32)
-						packets_per_transfer = 32;
-
-					total_transfer_size = packets_per_transfer * endpoint_bytes_per_packet;
-					break;
+				if ( endpoint_bytes_per_packet >= config_bytes_per_packet ) {
+				    if (endpoint_bytes_per_packet < selected_bytes_per_packet) {
+				        selected_bytes_per_packet = endpoint_bytes_per_packet;
+				        selected_alt_idx = alt_idx;
+				    }
 				}
-			}
-		}
-		if (UNLIKELY(!endpoint_bytes_per_packet)) {
-			LOGE("endpoint_bytes_per_packet is zero");
+            }
+        }
+
+        altsetting = interface->altsetting + selected_alt_idx;
+
+		if (UNLIKELY(!selected_bytes_per_packet)) {
+			LOGE("selected_bytes_per_packet is zero");
 			ret = UVC_ERROR_INVALID_MODE;
 			goto fail;
 		}
+
+        /* Transfers will be at most one frame long: Divide the maximum frame size
+         * by the size of the endpoint and round up */
+        packets_per_transfer = (dwMaxVideoFrameSize
+                + selected_bytes_per_packet - 1)
+                / selected_bytes_per_packet;		// XXX cashed by zero divided exception occured
+
+        /* But keep a reasonable limit: Otherwise we start dropping data */
+        if (packets_per_transfer > 32)
+            packets_per_transfer = 32;
+
+        total_transfer_size = packets_per_transfer * selected_bytes_per_packet;
+
 		if (UNLIKELY(!total_transfer_size)) {
 			LOGE("total_transfer_size is zero");
 			ret = UVC_ERROR_INVALID_MODE;
 			goto fail;
 		}
 
-		/* If we searched through all the altsettings and found nothing usable */
-/*		if (UNLIKELY(alt_idx == interface->num_altsetting)) {	// XXX never hit this condition
-			UVC_DEBUG("libusb_set_interface_alt_setting failed");
-			ret = UVC_ERROR_INVALID_MODE;
-			goto fail;
-		} */
-
 		/* Select the altsetting */
-		MARK("Select the altsetting");
+		MARK("Select altsetting: %d", selected_alt_idx);
 		ret = libusb_set_interface_alt_setting(strmh->devh->usb_devh,
 				altsetting->bInterfaceNumber, altsetting->bAlternateSetting);
 		if (UNLIKELY(ret != UVC_SUCCESS)) {
@@ -1563,7 +1573,7 @@ uvc_error_t uvc_stream_start_bandwidth(uvc_stream_handle_t *strmh,
 				packets_per_transfer, _uvc_stream_callback,
 				(void*) strmh, 5000);
 
-			libusb_set_iso_packet_lengths(transfer, endpoint_bytes_per_packet);
+			libusb_set_iso_packet_lengths(transfer, selected_bytes_per_packet);
 		}
 	} else {
 		MARK("bulk transfer mode");

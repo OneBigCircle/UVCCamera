@@ -334,8 +334,12 @@ public class UVCCamera {
 	}
 
 	public List<Size> getSupportedSizeList() {
-		final int type = (mCurrentFrameFormat > 0) ? 6 : 4;
-		return getSupportedSize(type, mSupportedSize);
+		List<Size> yuyvSizes = getSupportedSize(4, mSupportedSize);
+		List<Size> mjpegSizes = getSupportedSize(6, mSupportedSize);
+		List<Size> allSizes = new ArrayList<>();
+		allSizes.addAll(yuyvSizes);
+		allSizes.addAll(mjpegSizes);
+		return allSizes;
 	}
 
 	public static List<Size> getSupportedSize(final int type, final String supportedSize) {
