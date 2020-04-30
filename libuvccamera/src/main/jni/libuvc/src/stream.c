@@ -1540,8 +1540,8 @@ uvc_error_t uvc_stream_start_bandwidth(uvc_stream_handle_t *strmh,
                 / selected_bytes_per_packet;		// XXX cashed by zero divided exception occured
 
         /* But keep a reasonable limit: Otherwise we start dropping data */
-        if (packets_per_transfer > 32)
-            packets_per_transfer = 32;
+        //if (packets_per_transfer > 32)
+        //    packets_per_transfer = 32;
 
         total_transfer_size = packets_per_transfer * selected_bytes_per_packet;
 
