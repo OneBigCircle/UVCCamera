@@ -1545,6 +1545,12 @@ uvc_error_t uvc_stream_start_bandwidth(uvc_stream_handle_t *strmh,
 
         total_transfer_size = packets_per_transfer * selected_bytes_per_packet;
 
+#if !defined(__LP64__)
+        MARK("total_transfer_size: %d", total_transfer_size);
+#else
+        MARK("total_transfer_size: %ld", total_transfer_size);
+#endif
+
 		if (UNLIKELY(!total_transfer_size)) {
 			LOGE("total_transfer_size is zero");
 			ret = UVC_ERROR_INVALID_MODE;
