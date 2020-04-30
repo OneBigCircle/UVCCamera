@@ -1389,6 +1389,7 @@ uvc_error_t uvc_stream_start_bandwidth(uvc_stream_handle_t *strmh,
 	uvc_error_t ret;
 	/* Total amount of data per transfer */
 	size_t total_transfer_size;
+	size_t possible_transfer_size;
 	struct libusb_transfer *transfer;
 	int transfer_id;
 
@@ -1444,8 +1445,6 @@ uvc_error_t uvc_stream_start_bandwidth(uvc_stream_handle_t *strmh,
 		size_t config_bytes_per_packet;
 		/* Number of packets per transfer */
 		size_t packets_per_transfer;
-		/* Total amount of data per transfer */
-		size_t total_transfer_size;
 		/* Size of packet transferable from the chosen endpoint */
 		size_t endpoint_bytes_per_packet;
 		/* Index of the altsetting */
@@ -1540,15 +1539,19 @@ uvc_error_t uvc_stream_start_bandwidth(uvc_stream_handle_t *strmh,
                 / selected_bytes_per_packet;		// XXX cashed by zero divided exception occured
 
         /* But keep a reasonable limit: Otherwise we start dropping data */
-        //if (packets_per_transfer > 32)
-        //    packets_per_transfer = 32;
-
         total_transfer_size = packets_per_transfer * selected_bytes_per_packet;
+        possible_transfer_size = packets_per_transfer * strmh->cur_ctrl.dwMaxPayloadTransferSize;
+
+        if (possible_transfer_size > 512 * 1024) {
+            packets_per_transfer = packets_per_transfer * 512 * 1024 / possible_transfer_size;
+            total_transfer_size = packets_per_transfer * selected_bytes_per_packet;
+            possible_transfer_size = packets_per_transfer * strmh->cur_ctrl.dwMaxPayloadTransferSize;
+        }
 
 #if !defined(__LP64__)
-        MARK("total_transfer_size: %d", total_transfer_size);
+        MARK("packets_per_transfer: %d, total_transfer_size: %d, possible_transfer_size: %d", packets_per_transfer, total_transfer_size, possible_transfer_size);
 #else
-        MARK("total_transfer_size: %ld", total_transfer_size);
+        MARK("packets_per_transfer: %d, total_transfer_size: %ld, possible_transfer_size: %ld", packets_per_transfer, total_transfer_size, possible_transfer_size);
 #endif
 
 		if (UNLIKELY(!total_transfer_size)) {
@@ -1571,11 +1574,11 @@ uvc_error_t uvc_stream_start_bandwidth(uvc_stream_handle_t *strmh,
 		for (transfer_id = 0; transfer_id < LIBUVC_NUM_TRANSFER_BUFS; ++transfer_id) {
 			transfer = libusb_alloc_transfer(packets_per_transfer);
 			strmh->transfers[transfer_id] = transfer;
-			strmh->transfer_bufs[transfer_id] = malloc(total_transfer_size);
+			strmh->transfer_bufs[transfer_id] = malloc(possible_transfer_size);
 
 			libusb_fill_iso_transfer(transfer, strmh->devh->usb_devh,
 				format_desc->parent->bEndpointAddress,
-				strmh->transfer_bufs[transfer_id], total_transfer_size,
+				strmh->transfer_bufs[transfer_id], possible_transfer_size,
 				packets_per_transfer, _uvc_stream_callback,
 				(void*) strmh, 5000);
 
