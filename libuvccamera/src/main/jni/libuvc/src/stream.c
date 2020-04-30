@@ -1483,7 +1483,7 @@ uvc_error_t uvc_stream_start_bandwidth(uvc_stream_handle_t *strmh,
 		 * packet sizes are increasing. */
 		const int num_alt = interface->num_altsetting - 1;
 		int selected_alt_idx = num_alt;
-		int selected_bytes_per_packet = strmh->cur_ctrl.dwMaxPayloadTransferSize;
+		int selected_bytes_per_packet = 0;
 		for (alt_idx = 0; alt_idx <= num_alt ; alt_idx++) {
 			altsetting = interface->altsetting + alt_idx;
 			endpoint_bytes_per_packet = 0;
@@ -1516,7 +1516,7 @@ uvc_error_t uvc_stream_start_bandwidth(uvc_stream_handle_t *strmh,
 #endif
 
 				if ( endpoint_bytes_per_packet >= config_bytes_per_packet ) {
-				    if (endpoint_bytes_per_packet < selected_bytes_per_packet) {
+				    if ((!selected_bytes_per_packet) || endpoint_bytes_per_packet < selected_bytes_per_packet) {
 				        selected_bytes_per_packet = endpoint_bytes_per_packet;
 				        selected_alt_idx = alt_idx;
 				    }
