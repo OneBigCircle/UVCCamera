@@ -25,8 +25,9 @@
 #include <stdlib.h>
 #include <linux/time.h>
 #include <unistd.h>
+#include <pthread.h>
 
-#if 1	// set 1 if you don't need debug log
+#if 1 // set 1 if you don't need debug log
 	#ifndef LOG_NDEBUG
 		#define	LOG_NDEBUG		// w/o LOGV/LOGD/MARK
 	#endif
@@ -356,12 +357,23 @@ int UVCPreview::stopPreview() {
 	ENTER();
 	bool b = isRunning();
 	if (LIKELY(b)) {
-		mIsRunning = false;
-		pthread_cond_signal(&preview_sync);
-		pthread_cond_signal(&capture_sync);
+        mIsRunning = false;
+        pthread_mutex_lock(&preview_mutex);
+        {
+            pthread_cond_signal(&preview_sync);
+        }
+        pthread_mutex_unlock(&preview_mutex);
+        LOGI("UVCPreview::Attempting to stop preview thread");
         if (pthread_join(preview_thread, NULL) != EXIT_SUCCESS) {
             LOGW("UVCPreview::terminate preview thread: pthread_join failed");
         }
+
+        pthread_mutex_lock(&capture_mutex);
+        {
+            pthread_cond_signal(&capture_sync);
+        }
+        pthread_mutex_unlock(&capture_mutex);
+        LOGI("UVCPreview::Attempting to stop capture thread");
         if (LIKELY(capture_thread_exists == true)) {
             if (pthread_join(capture_thread, NULL) != EXIT_SUCCESS) {
                 LOGW("UVCPreview::terminate capture thread: pthread_join failed");
@@ -533,7 +545,7 @@ void UVCPreview::do_preview(uvc_stream_ctrl_t *ctrl) {
 			// MJPEG mode
 			for ( ; LIKELY(isRunning()) ; ) {
 				frame_mjpeg = waitPreviewFrame();
-				if (LIKELY(frame_mjpeg)) {
+				if (LIKELY(isRunning() && frame_mjpeg)) {
 					frame = get_frame(frame_mjpeg->width * frame_mjpeg->height * 2);
 					result = uvc_mjpeg2yuyv(frame_mjpeg, frame);   // MJPEG => yuyv
 					recycle_frame(frame_mjpeg);
@@ -543,6 +555,8 @@ void UVCPreview::do_preview(uvc_stream_ctrl_t *ctrl) {
 					} else {
 						recycle_frame(frame);
 					}
+				} else if (UNLIKELY(frame_mjpeg)) {
+				    recycle_frame(frame_mjpeg);
 				}
 			}
 		} else {
@@ -555,10 +569,15 @@ void UVCPreview::do_preview(uvc_stream_ctrl_t *ctrl) {
 				}
 			}
 		}
-		pthread_cond_signal(&capture_sync);
+		pthread_mutex_lock(&capture_mutex);
+		{
+		    pthread_cond_signal(&capture_sync);
+		}
+		pthread_mutex_unlock(&capture_mutex);
 #if LOCAL_DEBUG
 		LOGI("preview_thread_func:wait for all callbacks complete");
 #endif
+        LOGI("preview_thread_func:preview loop complete, attempting to stop streaming for device handle");
 		uvc_stop_streaming(mDeviceHandle);
 #if LOCAL_DEBUG
 		LOGI("Streaming finished");

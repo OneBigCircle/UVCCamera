@@ -45,7 +45,7 @@
 #define LOCAL_DEBUG 0
 
 #define LOG_TAG "libuvc/stream"
-#if 0	// デバッグ情報を出さない時1
+#if 1	// デバッグ情報を出さない時1
 	#ifndef LOG_NDEBUG
 		#define	LOG_NDEBUG		// LOGV/LOGD/MARKを出力しない時
 		#endif
@@ -58,6 +58,7 @@
 #endif
 
 #include <assert.h>		// XXX add assert for debugging
+#include <errno.h>
 
 #include "libuvc/libuvc.h"
 #include "libuvc/libuvc_internal.h"
@@ -1844,14 +1845,21 @@ uvc_error_t uvc_stream_stop(uvc_stream_handle_t *strmh) {
 					// but this could lead to crash in _uvc_callback
 					// therefore we comment out these lines
 					// and free these objects in _uvc_iso_callback when strmh->running is false
-/*					free(strmh->transfers[i]->buffer);
+					free(strmh->transfers[i]->buffer);
 					libusb_free_transfer(strmh->transfers[i]);
-					strmh->transfers[i] = NULL; */
+					strmh->transfers[i] = NULL;
 				}
 			}
 		}
 
 		/* Wait for transfers to complete/cancel */
+
+		struct timespec ts;
+        clock_gettime(CLOCK_REALTIME, &ts);
+        ts.tv_sec += 5;
+
+		UVC_DEBUG("uvc_stream_stop Waiting for transfers to complete");
+
 		for (; 1 ;) {
 			for (i = 0; i < LIBUVC_NUM_TRANSFER_BUFS; i++) {
 				if (strmh->transfers[i] != NULL)
@@ -1859,7 +1867,11 @@ uvc_error_t uvc_stream_stop(uvc_stream_handle_t *strmh) {
 			}
 			if (i == LIBUVC_NUM_TRANSFER_BUFS)
 				break;
-			pthread_cond_wait(&strmh->cb_cond, &strmh->cb_mutex);
+
+            if (pthread_cond_timedwait(&strmh->cb_cond, &strmh->cb_mutex, &ts) == ETIMEDOUT) {
+                UVC_DEBUG("uvc_stream_stop Timed out waiting for transfers, aborting anyway");
+                break;
+            }
 		}
 		// Kick the user thread awake
 		pthread_cond_broadcast(&strmh->cb_cond);
@@ -1870,6 +1882,7 @@ uvc_error_t uvc_stream_stop(uvc_stream_handle_t *strmh) {
 
 	if (strmh->user_cb) {
 		/* wait for the thread to stop (triggered by LIBUSB_TRANSFER_CANCELLED transfer) */
+		UVC_DEBUG("uvc_stream_stop Waiting for user callback thread to terminate");
 		pthread_join(strmh->cb_thread, NULL);
 	}
 

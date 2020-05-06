@@ -21,7 +21,7 @@
  */
 
 #define LOG_TAG "libusb/netlink"
-#if 0	// デバッグ情報を出さない時1
+#if 1	// デバッグ情報を出さない時1
 	#ifndef LOG_NDEBUG
 		#define	LOG_NDEBUG		// LOGV/LOGD/MARKを出力しない時
 		#endif
