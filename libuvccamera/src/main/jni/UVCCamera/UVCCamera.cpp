@@ -46,6 +46,8 @@
 #include "Parameters.h"
 #include "libuvc_internal.h"
 
+struct libusb_context *default_uvc_usb_ctx = NULL;
+
 #define	LOCAL_DEBUG 0
 
 //**********************************************************************
@@ -142,7 +144,10 @@ int UVCCamera::connect(int vid, int pid, int fd, int busnum, int devaddr, const 
 			free(mUsbFs);
 		mUsbFs = strdup(usbfs);
 		if (UNLIKELY(!mContext)) {
-			result = uvc_init2(&mContext, NULL, mUsbFs);
+			if (default_uvc_usb_ctx == NULL) {
+				libusb_init2(&default_uvc_usb_ctx, NULL);
+			}
+			result = uvc_init2(&mContext, default_uvc_usb_ctx, mUsbFs);
 //			libusb_set_debug(mContext->usb_ctx, LIBUSB_LOG_LEVEL_DEBUG);
 			if (UNLIKELY(result < 0)) {
 				LOGD("failed to init libuvc");
