@@ -1320,6 +1320,9 @@ static void do_close(struct libusb_context *ctx,
 	struct usbi_transfer *itransfer;
 	struct usbi_transfer *tmp;
 
+	if (!ctx->live) {
+		return;
+	}
 	libusb_lock_events(ctx);
 	{
 		/* remove any transfers in flight that are for this device */

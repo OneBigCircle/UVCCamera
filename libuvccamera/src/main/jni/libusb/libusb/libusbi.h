@@ -285,6 +285,8 @@ struct libusb_context {
 #endif
 
 	struct list_head list;
+
+	usbi_mutex_t destruction_lock;
 };
 
 #ifdef USBI_TIMERFD_AVAILABLE
