@@ -1108,7 +1108,6 @@ printf("completed!\n");
 int usbi_io_init(struct libusb_context *ctx) {
 
 	int r;
-	usbi_mutex_init(&ctx->destruction_lock, NULL);
 	usbi_mutex_lock(&ctx->destruction_lock);
 	{
 		usbi_mutex_init(&ctx->flying_transfers_lock, NULL);

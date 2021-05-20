@@ -2067,6 +2067,7 @@ int API_EXPORTED libusb_init2(libusb_context **context, const char *usbfs) {
 #ifdef ENABLE_DEBUG_LOGGING
 		ctx->debug = LIBUSB_LOG_LEVEL_DEBUG;
 #endif
+		usbi_mutex_init(&ctx->destruction_lock, NULL);
 
 		if (UNLIKELY(dbg)) {
 			ctx->debug = atoi(dbg);
@@ -2376,6 +2377,7 @@ void API_EXPORTED libusb_exit(struct libusb_context *ctx) {
 	usbi_mutex_destroy(&ctx->open_devs_lock);
 	usbi_mutex_destroy(&ctx->usb_devs_lock);
 	usbi_mutex_destroy(&ctx->hotplug_cbs_lock);
+	usbi_mutex_destroy(&ctx->destruction_lock);
 	free(ctx);
 }
 
