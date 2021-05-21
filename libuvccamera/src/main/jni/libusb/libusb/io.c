@@ -2274,14 +2274,16 @@ int API_EXPORTED libusb_handle_events_timeout(libusb_context *ctx,
  * \returns 0 on success, or a LIBUSB_ERROR code on failure
  */
 int API_EXPORTED libusb_handle_events(libusb_context *ctx) {
+	struct timeval tv;
+	int r;
 	usbi_mutex_lock(&ctx->destruction_lock);
 	{
-		struct timeval tv;
-		tv.tv_sec = 60;
+		tv.tv_sec = 1;
 		tv.tv_usec = 0;
-		return libusb_handle_events_timeout_completed(ctx, &tv, NULL);
+		r = libusb_handle_events_timeout_completed(ctx, &tv, NULL);
 	}
 	usbi_mutex_unlock(&ctx->destruction_lock);
+	return r;
 }
 
 /** \ingroup poll
