@@ -361,6 +361,7 @@ enum {
  */
 
 struct usbi_transfer {
+	int dead;
 	int num_iso_packets;
 	struct list_head list;
 	struct timeval timeout;

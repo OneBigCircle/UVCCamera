@@ -1108,18 +1108,14 @@ printf("completed!\n");
 int usbi_io_init(struct libusb_context *ctx) {
 
 	int r;
-	usbi_mutex_lock(&ctx->destruction_lock);
-	{
-		usbi_mutex_init(&ctx->flying_transfers_lock, NULL);
-		usbi_mutex_init(&ctx->pollfds_lock, NULL);
-		usbi_mutex_init(&ctx->pollfd_modify_lock, NULL);
-		usbi_mutex_init_recursive(&ctx->events_lock, NULL);
-		usbi_mutex_init(&ctx->event_waiters_lock, NULL);
-		usbi_cond_init(&ctx->event_waiters_cond, NULL);
-		list_init(&ctx->flying_transfers);
-		list_init(&ctx->pollfds);
-	}
-	usbi_mutex_unlock(&ctx->destruction_lock);
+	usbi_mutex_init(&ctx->flying_transfers_lock, NULL);
+	usbi_mutex_init(&ctx->pollfds_lock, NULL);
+	usbi_mutex_init(&ctx->pollfd_modify_lock, NULL);
+	usbi_mutex_init_recursive(&ctx->events_lock, NULL);
+	usbi_mutex_init(&ctx->event_waiters_lock, NULL);
+	usbi_cond_init(&ctx->event_waiters_cond, NULL);
+	list_init(&ctx->flying_transfers);
+	list_init(&ctx->pollfds);
 
 	/* FIXME should use an eventfd on kernels that support it */
 	r = usbi_pipe(ctx->ctrl_pipe);
@@ -1169,16 +1165,12 @@ err_close_pipe:
 	usbi_close(ctx->ctrl_pipe[0]);
 	usbi_close(ctx->ctrl_pipe[1]);
 err:
-	usbi_mutex_lock(&ctx->destruction_lock);
-	{
-		usbi_mutex_destroy(&ctx->flying_transfers_lock);
-		usbi_mutex_destroy(&ctx->pollfds_lock);
-		usbi_mutex_destroy(&ctx->pollfd_modify_lock);
-		usbi_mutex_destroy(&ctx->events_lock);
-		usbi_mutex_destroy(&ctx->event_waiters_lock);
-		usbi_cond_destroy(&ctx->event_waiters_cond);
-	}
-	usbi_mutex_unlock(&ctx->destruction_lock);
+	usbi_mutex_destroy(&ctx->flying_transfers_lock);
+	usbi_mutex_destroy(&ctx->pollfds_lock);
+	usbi_mutex_destroy(&ctx->pollfd_modify_lock);
+	usbi_mutex_destroy(&ctx->events_lock);
+	usbi_mutex_destroy(&ctx->event_waiters_lock);
+	usbi_cond_destroy(&ctx->event_waiters_cond);
 	return r;
 }
 
@@ -1196,16 +1188,12 @@ void usbi_io_exit(struct libusb_context *ctx) {
 		close(ctx->timerfd);
 	}
 #endif
-	usbi_mutex_lock(&ctx->destruction_lock);
-	{
-		usbi_mutex_destroy(&ctx->flying_transfers_lock);
-		usbi_mutex_destroy(&ctx->pollfds_lock);
-		usbi_mutex_destroy(&ctx->pollfd_modify_lock);
-		usbi_mutex_destroy(&ctx->events_lock);
-		usbi_mutex_destroy(&ctx->event_waiters_lock);
-		usbi_cond_destroy(&ctx->event_waiters_cond);
-	}
-	usbi_mutex_unlock(&ctx->destruction_lock);
+	usbi_mutex_destroy(&ctx->flying_transfers_lock);
+	usbi_mutex_destroy(&ctx->pollfds_lock);
+	usbi_mutex_destroy(&ctx->pollfd_modify_lock);
+	usbi_mutex_destroy(&ctx->events_lock);
+	usbi_mutex_destroy(&ctx->event_waiters_lock);
+	usbi_cond_destroy(&ctx->event_waiters_cond);
 }
 
 static int calculate_timeout(struct usbi_transfer *transfer) {
@@ -1339,6 +1327,7 @@ struct libusb_transfer * LIBUSB_CALL libusb_alloc_transfer(
 	if (UNLIKELY(!itransfer))
 		return NULL;
 
+	itransfer->dead = 0;
 	itransfer->num_iso_packets = iso_packets;
 	usbi_mutex_init(&itransfer->lock, NULL);
 	return USBI_TRANSFER_TO_LIBUSB_TRANSFER(itransfer);
@@ -1371,6 +1360,7 @@ void API_EXPORTED libusb_free_transfer(struct libusb_transfer *transfer) {
 		free(transfer->buffer);
 
 	itransfer = LIBUSB_TRANSFER_TO_USBI_TRANSFER(transfer);
+	itransfer->dead = 1;
 	usbi_mutex_destroy(&itransfer->lock);
 	free(itransfer);
 	transfer->user_data = NULL;	// XXX

@@ -2727,6 +2727,10 @@ static int handle_iso_completion(struct libusb_device_handle *handle,	// XXX add
 	int i;
 	enum libusb_transfer_status status = LIBUSB_TRANSFER_COMPLETED;
 
+	if (itransfer->dead) {
+		return LIBUSB_ERROR_NOT_FOUND;
+	}
+
 	usbi_mutex_lock(&itransfer->lock);
 	if (UNLIKELY(tpriv == NULL)) {
 		usbi_err(TRANSFER_CTX(transfer), "could not locate urb!");	// crash 2014/09/29 SIGSEGV/SEGV_MAPERR

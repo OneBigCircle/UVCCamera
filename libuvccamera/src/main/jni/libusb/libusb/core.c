@@ -2317,66 +2317,70 @@ void API_EXPORTED libusb_exit(struct libusb_context *ctx) {
 	usbi_dbg("");
 	USBI_GET_CONTEXT(ctx);
 
-	/* if working with default context, only actually do the deinitialization
-	 * if we're the last user */
-	usbi_mutex_static_lock(&default_context_lock);
-	if (ctx == usbi_default_context) {
-		if (--default_context_refcnt > 0) {
-			usbi_dbg("not destroying default context");
-			usbi_mutex_static_unlock(&default_context_lock);
-			return;
-		}
-		usbi_dbg("destroying default context");
-		usbi_default_context = NULL;
-	}
-	usbi_mutex_static_unlock(&default_context_lock);
-
-	usbi_mutex_static_lock(&active_contexts_lock);
+	usbi_mutex_lock(&ctx->destruction_lock);
 	{
-		list_del(&ctx->list);
-	}
-	usbi_mutex_static_unlock(&active_contexts_lock);
-
-	if (libusb_has_capability(LIBUSB_CAP_HAS_HOTPLUG)) {
-		usbi_hotplug_deregister_all(ctx);
-
-		/*
-		 * Ensure any pending unplug events are read from the hotplug
-		 * pipe. The usb_device-s hold in the events are no longer part
-		 * of usb_devs, but the events still hold a reference!
-		 *
-		 * Note we don't do this if the application has left devices
-		 * open (which implies a buggy app) to avoid packet completion
-		 * handlers running when the app does not expect them to run.
-		 */
-		if (list_empty(&ctx->open_devs))
-			libusb_handle_events_timeout(ctx, &tv);
-
-		usbi_mutex_lock(&ctx->usb_devs_lock);
-		{
-			list_for_each_entry_safe(dev, next, &ctx->usb_devs, list, struct libusb_device)
-			{
-				list_del(&dev->list);
-				libusb_unref_device(dev);
+		/* if working with default context, only actually do the deinitialization
+		 * if we're the last user */
+		usbi_mutex_static_lock(&default_context_lock);
+		if (ctx == usbi_default_context) {
+			if (--default_context_refcnt > 0) {
+				usbi_dbg("not destroying default context");
+				usbi_mutex_static_unlock(&default_context_lock);
+				return;
 			}
+			usbi_dbg("destroying default context");
+			usbi_default_context = NULL;
 		}
-		usbi_mutex_unlock(&ctx->usb_devs_lock);
+		usbi_mutex_static_unlock(&default_context_lock);
+
+		usbi_mutex_static_lock(&active_contexts_lock);
+		{
+			list_del(&ctx->list);
+		}
+		usbi_mutex_static_unlock(&active_contexts_lock);
+
+		if (libusb_has_capability(LIBUSB_CAP_HAS_HOTPLUG)) {
+			usbi_hotplug_deregister_all(ctx);
+
+			/*
+			 * Ensure any pending unplug events are read from the hotplug
+			 * pipe. The usb_device-s hold in the events are no longer part
+			 * of usb_devs, but the events still hold a reference!
+			 *
+			 * Note we don't do this if the application has left devices
+			 * open (which implies a buggy app) to avoid packet completion
+			 * handlers running when the app does not expect them to run.
+			 */
+			if (list_empty(&ctx->open_devs))
+				libusb_handle_events_timeout(ctx, &tv);
+
+			usbi_mutex_lock(&ctx->usb_devs_lock);
+			{
+				list_for_each_entry_safe(dev, next, &ctx->usb_devs, list, struct libusb_device)
+				{
+					list_del(&dev->list);
+					libusb_unref_device(dev);
+				}
+			}
+			usbi_mutex_unlock(&ctx->usb_devs_lock);
+		}
+
+		/* a few sanity checks. don't bother with locking because unless
+		 * there is an application bug, nobody will be accessing these. */
+		if (!list_empty(&ctx->usb_devs))
+			usbi_warn(ctx, "some libusb_devices were leaked");
+		if (!list_empty(&ctx->open_devs))
+			usbi_warn(ctx, "application left some devices open");
+
+		usbi_io_exit(ctx);
+		if (usbi_backend->exit)
+			usbi_backend->exit();
+
+		usbi_mutex_destroy(&ctx->open_devs_lock);
+		usbi_mutex_destroy(&ctx->usb_devs_lock);
+		usbi_mutex_destroy(&ctx->hotplug_cbs_lock);
 	}
-
-	/* a few sanity checks. don't bother with locking because unless
-	 * there is an application bug, nobody will be accessing these. */
-	if (!list_empty(&ctx->usb_devs))
-		usbi_warn(ctx, "some libusb_devices were leaked");
-	if (!list_empty(&ctx->open_devs))
-		usbi_warn(ctx, "application left some devices open");
-
-	usbi_io_exit(ctx);
-	if (usbi_backend->exit)
-		usbi_backend->exit();
-
-	usbi_mutex_destroy(&ctx->open_devs_lock);
-	usbi_mutex_destroy(&ctx->usb_devs_lock);
-	usbi_mutex_destroy(&ctx->hotplug_cbs_lock);
+	usbi_mutex_unlock(&ctx->destruction_lock);
 	usbi_mutex_destroy(&ctx->destruction_lock);
 	free(ctx);
 }
